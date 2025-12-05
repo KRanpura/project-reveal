@@ -1,10 +1,13 @@
+/* General layout */
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  background-color: #f4e8ff; /* Light lavender-purple background */
 }
 
+/* Logo hover effects */
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -12,12 +15,55 @@
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em rgba(120, 100, 255, 0.5)); /* Softer purple glow */
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 2em rgba(97, 218, 251, 0.5)); /* Muted blue glow */
 }
 
+/* Button styles (muted colors) */
+button,
+a.button {
+  background-color: #6c8ae4; /* Softer blue */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 200ms ease-in-out, transform 100ms;
+}
+
+button:hover,
+a.button:hover {
+  background-color: #5a77c7; /* Darker, more subdued hover */
+  transform: scale(1.02);
+}
+
+button.green,
+a.button.green {
+  background-color: #7ac27a; /* Muted green */
+}
+
+button.green:hover,
+a.button.green:hover {
+  background-color: #68a968; /* Slightly darker green hover */
+}
+
+/* Card styling */
+.card {
+  padding: 2em;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* Docs text */
+.read-the-docs {
+  color: #777;
+}
+
+/* Logo spin animation */
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
@@ -31,12 +77,4 @@
   a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;
   }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }
