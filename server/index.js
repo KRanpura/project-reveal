@@ -1,12 +1,5 @@
 import 'dotenv/config';
 
-
-// console.log('ENV CHECK', {
-//   BACKEND_URL: process.env.BACKEND_URL,
-//   FRONTEND_URL: process.env.FRONTEND_URL,
-//   CWD: process.cwd(),
-// });
-
 import express from 'express';
 import multer from 'multer';
 import { S3Client, PutObjectCommand, HeadBucketCommand } from '@aws-sdk/client-s3';
@@ -14,7 +7,7 @@ import pkg from 'pg';
 const { Pool } = pkg;
 import crypto from 'crypto';
 
-import jwt from 'jsonwebtoken';  //for google oauth, admin portal sign in + s3 visibility toggling
+import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
@@ -26,7 +19,7 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cookieParser()); //new addition for admin portal, CORs lets frontend talk to backend
+app.use(cookieParser());
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true
@@ -35,14 +28,7 @@ app.use(passport.initialize());
 app.use(express.urlencoded({ extended: true }));
 app.set('trust proxy', 1);
 
-
 // Configure S3
-// console.log('================ S3 CONFIG =================');
-// console.log('AWS_REGION:', process.env.AWS_REGION);
-// console.log('AWS_ACCESS_KEY_ID:', process.env.AWS_ACCESS_KEY_ID ? '✅ Present' : '❌ Missing');
-// console.log('AWS_SECRET_ACCESS_KEY:', process.env.AWS_SECRET_ACCESS_KEY ? '✅ Present' : '❌ Missing');
-// console.log('S3_BUCKET_NAME:', process.env.S3_BUCKET_NAME);
-
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
   credentials: {
@@ -66,12 +52,6 @@ const s3Client = new S3Client({
 })();
 
 // Configure PostgreSQL
-// console.log('================ POSTGRES CONFIG ================');
-// console.log('DB_USER:', process.env.DB_USER);
-// console.log('DB_HOST:', process.env.DB_HOST);
-// console.log('DB_NAME:', process.env.DB_NAME);
-// console.log('DB_PORT:', process.env.DB_PORT);
-
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -86,14 +66,15 @@ const upload = multer({
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
 });
 
-// Webhook endpoint for Google Forms
+// ============================================================
+// WEBHOOK — Google Form submissions
+// ============================================================
 app.post('/api/webhook/submission', upload.single('document'), async (req, res) => {
   console.log('================ Webhook Triggered ================');
   console.log('Received webhook data:', req.body);
   console.log('Received file:', req.file);
 
   try {
-    // Extract form fields
     const {
       your_name,
       your_email,
@@ -106,21 +87,26 @@ app.post('/api/webhook/submission', upload.single('document'), async (req, res) 
       content_tags
     } = req.body;
 
-    // Validate required fields
     if (!your_name || !your_email || !doc_title) {
       console.error('❌ Missing required fields');
-      return res.status(400).json({ 
-        error: 'Missing required fields: your_name, your_email, doc_title' 
+      return res.status(400).json({
+        error: 'Missing required fields: your_name, your_email, doc_title'
       });
     }
 
-    // Handle file upload to S3
     let fileUrl = null;
+    let s3Key = null;
+
     if (req.file) {
-      const fileName = `${Date.now()}-${crypto.randomUUID()}-${req.file.originalname}`;
+      const sanitizedName = req.file.originalname
+        .replace(/\s+/g, '-')
+        .replace(/[^a-zA-Z0-9._-]/g, '');
+      const fileName = `${Date.now()}-${crypto.randomUUID()}-${sanitizedName}`;
+      s3Key = `documents/${fileName}`;
+
       const uploadParams = {
         Bucket: process.env.S3_BUCKET_NAME,
-        Key: `documents/${fileName}`,
+        Key: s3Key,
         Body: req.file.buffer,
         ContentType: req.file.mimetype,
         Metadata: {
@@ -133,32 +119,17 @@ app.post('/api/webhook/submission', upload.single('document'), async (req, res) 
       try {
         console.log('Uploading file to S3...');
         await s3Client.send(new PutObjectCommand(uploadParams));
-        fileUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/documents/${fileName}`;
+        fileUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
         console.log('✅ File uploaded to S3:', fileUrl);
       } catch (err) {
         console.error('❌ S3 upload failed:', err.message);
       }
     }
 
-    // Parse content_tags into array for PostgreSQL text[]
-    const parsedTags = content_tags 
-      ? content_tags.split(',').map(tag => tag.trim()).filter(tag => tag) 
+    const parsedTags = content_tags
+      ? content_tags.split(',').map(tag => tag.trim()).filter(tag => tag)
       : [];
 
-    // Log values before insertion
-    console.log('================ Inserting into PostgreSQL =================');
-    console.log('your_name:', your_name);
-    console.log('your_email:', your_email);
-    console.log('peer_reviewer_name:', peer_reviewer_name);
-    console.log('peer_reviewer_email:', peer_reviewer_email);
-    console.log('doc_title:', doc_title);
-    console.log('source:', source);
-    console.log('fileUrl:', fileUrl);
-    console.log('original_abstract:', original_abstract);
-    console.log('final_abstract:', final_abstract);
-    console.log('parsedTags:', parsedTags);
-
-    // Insert into PostgreSQL
     const insertQuery = `
       INSERT INTO form_submissions (
         your_name,
@@ -168,12 +139,13 @@ app.post('/api/webhook/submission', upload.single('document'), async (req, res) 
         doc_title,
         source,
         s3_file_url,
+        s3_key,
         original_abstract,
         final_abstract,
         content_tags,
         visibility
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending')
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending')
       RETURNING id, created_at;
     `;
 
@@ -187,6 +159,7 @@ app.post('/api/webhook/submission', upload.single('document'), async (req, res) 
         doc_title,
         source,
         fileUrl,
+        s3Key,
         original_abstract,
         final_abstract,
         parsedTags
@@ -224,15 +197,17 @@ app.post('/api/webhook/submission', upload.single('document'), async (req, res) 
   }
 });
 
-// Health check endpoint
+// ============================================================
+// HEALTH CHECK
+// ============================================================
 app.get('/api/health', async (req, res) => {
   try {
     const client = await pool.connect();
     const dbResult = await client.query('SELECT NOW() as current_time');
     client.release();
-    
-    res.json({ 
-      status: 'OK', 
+
+    res.json({
+      status: 'OK',
       timestamp: new Date().toISOString(),
       database: 'connected',
       db_time: dbResult.rows[0].current_time,
@@ -240,18 +215,12 @@ app.get('/api/health', async (req, res) => {
     });
   } catch (error) {
     console.error('Health check failed:', error.message);
-    res.status(500).json({ 
-      status: 'ERROR', 
+    res.status(500).json({
+      status: 'ERROR',
       timestamp: new Date().toISOString(),
-      error: error.message 
+      error: error.message
     });
   }
-});
-
-// Error handling middleware
-app.use((error, req, res, next) => {
-  console.error('Unhandled error:', error);
-  res.status(500).json({ error: 'Something went wrong!' });
 });
 
 // ============================================================
@@ -274,7 +243,6 @@ const requireAdmin = (req, res, next) => {
 // ============================================================
 // PASSPORT GOOGLE OAUTH STRATEGY
 // ============================================================
-
 if (!process.env.BACKEND_URL) {
   throw new Error('BACKEND_URL is not defined');
 }
@@ -302,13 +270,10 @@ passport.use(new GoogleStrategy({
 // ============================================================
 // GOOGLE OAUTH ROUTES
 // ============================================================
-
-// Step 1: Redirect to Google
 app.get('/api/admin/auth/google',
   passport.authenticate('google', { scope: ['email', 'profile'], session: false })
 );
 
-// Step 2: Google callback
 app.get('/api/admin/auth/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL}/admin?error=unauthorized` }),
   (req, res) => {
@@ -322,30 +287,27 @@ app.get('/api/admin/auth/google/callback',
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 8 * 60 * 60 * 1000, // 8 hours
+      maxAge: 8 * 60 * 60 * 1000,
     });
 
     res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/admin`);
   }
 );
 
-// Step 3: Check auth status (frontend polls this on load)
 app.get('/api/admin/auth/me', requireAdmin, (req, res) => {
   res.json({ email: req.admin.email, name: req.admin.name });
 });
 
-// Step 4: Logout
 app.post('/api/admin/auth/logout', (req, res) => {
   res.clearCookie('admin_token');
   res.json({ success: true });
 });
 
 // ============================================================
-// DOCUMENT MANAGEMENT ROUTES
+// ADMIN — DOCUMENT MANAGEMENT ROUTES
 // ============================================================
 
 // GET all submissions with filters
-// Query params: ?visibility=pending|public|private&search=...&limit=50&offset=0
 app.get('/api/admin/documents', requireAdmin, async (req, res) => {
   try {
     const { visibility, search, limit = 50, offset = 0 } = req.query;
@@ -396,7 +358,7 @@ app.get('/api/admin/documents', requireAdmin, async (req, res) => {
   }
 });
 
-// GET counts per visibility status (for dashboard stats)
+// GET counts per visibility status
 app.get('/api/admin/documents/stats', requireAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
@@ -472,9 +434,8 @@ app.delete('/api/admin/documents/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Get S3 URL first
     const selectResult = await pool.query(
-      'SELECT s3_file_url, doc_title FROM form_submissions WHERE id = $1',
+      'SELECT s3_key, s3_file_url, doc_title FROM form_submissions WHERE id = $1',
       [id]
     );
 
@@ -482,26 +443,27 @@ app.delete('/api/admin/documents/:id', requireAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    const { s3_file_url, doc_title } = selectResult.rows[0];
+    const { s3_key, s3_file_url, doc_title } = selectResult.rows[0];
 
-    // Delete from S3 if file exists
-    if (s3_file_url) {
+    // Use s3_key directly if available, fall back to parsing s3_file_url
+    const keyToDelete = s3_key || (() => {
+      if (!s3_file_url) return null;
+      const url = new URL(s3_file_url);
+      return decodeURIComponent(url.pathname.slice(1));
+    })();
+
+    if (keyToDelete) {
       try {
-        // Extract the S3 key from the URL
-        const url = new URL(s3_file_url);
-        const s3Key = url.pathname.slice(1); // removes leading /
         await s3Client.send(new DeleteObjectCommand({
           Bucket: process.env.S3_BUCKET_NAME,
-          Key: s3Key,
+          Key: keyToDelete,
         }));
-        console.log(`✅ Deleted from S3: ${s3Key}`);
+        console.log(`✅ Deleted from S3: ${keyToDelete}`);
       } catch (s3Err) {
         console.error('S3 delete failed (continuing):', s3Err.message);
-        // Don't block the DB delete if S3 fails
       }
     }
 
-    // Delete from PostgreSQL
     await pool.query('DELETE FROM form_submissions WHERE id = $1', [id]);
 
     res.json({ success: true, deleted: { id, doc_title } });
@@ -510,56 +472,148 @@ app.delete('/api/admin/documents/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// GET a pre-signed S3 URL for secure document preview (15 min expiry)
+// GET a pre-signed S3 URL for admin document preview (15 min expiry)
 app.get('/api/admin/documents/:id/preview', requireAdmin, async (req, res) => {
   const { id } = req.params;
 
   try {
     const result = await pool.query(
-      'SELECT s3_file_url, doc_title FROM form_submissions WHERE id = $1',
+      'SELECT s3_key, doc_title FROM form_submissions WHERE id = $1',
       [id]
     );
 
-    if (result.rows.length === 0 || !result.rows[0].s3_file_url) {
+    if (result.rows.length === 0 || !result.rows[0].s3_key) {
       return res.status(404).json({ error: 'Document or file not found' });
     }
 
-    const { s3_file_url } = result.rows[0];
-    const url = new URL(s3_file_url);
-    const s3Key = url.pathname.slice(1);
+    const s3Key = decodeURIComponent(result.rows[0].s3_key);
 
     const signedUrl = await getSignedUrl(
       s3Client,
       new GetObjectCommand({ Bucket: process.env.S3_BUCKET_NAME, Key: s3Key }),
-      { expiresIn: 900 } // 15 minutes
+      { expiresIn: 900 }
     );
 
     res.json({ signedUrl });
   } catch (err) {
+    console.error('Admin preview endpoint error:', err);
     res.status(500).json({ error: err.message });
   }
 });
 
+// ============================================================
+// PUBLIC ROUTES — no auth required
+// ============================================================
+
+// GET all public articles for the Browse tab
+app.get('/api/articles/public', async (req, res) => {
+  try {
+    const { search, tags } = req.query;
+
+    let whereClauses = [`visibility = 'public'`];
+    let params = [];
+    let paramIdx = 1;
+
+    if (search) {
+      whereClauses.push(
+        `(doc_title ILIKE $${paramIdx} OR final_abstract ILIKE $${paramIdx} OR your_name ILIKE $${paramIdx})`
+      );
+      params.push(`%${search}%`);
+      paramIdx++;
+    }
+
+    // Filter by tag if provided (e.g. ?tags=HIV)
+    if (tags) {
+      whereClauses.push(`$${paramIdx} = ANY(content_tags)`);
+      params.push(tags);
+      paramIdx++;
+    }
+
+    const where = `WHERE ${whereClauses.join(' AND ')}`;
+
+    const result = await pool.query(
+      `SELECT 
+        id,
+        doc_title,
+        source,
+        final_abstract,
+        original_abstract,
+        content_tags AS tags,
+        created_at
+       FROM form_submissions
+       ${where}
+       ORDER BY created_at DESC`,
+      params
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /api/articles/public error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch public articles' });
+  }
+});
+
+// GET a pre-signed S3 URL for public document preview/download (1 hour expiry)
+app.get('/api/articles/:id/preview', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Only serve files for public documents
+    const result = await pool.query(
+      `SELECT s3_key, doc_title FROM form_submissions
+       WHERE id = $1 AND visibility = 'public'`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Document not found or not public' });
+    }
+
+    if (!result.rows[0].s3_key) {
+      return res.status(404).json({ error: 'No file attached to this document' });
+    }
+
+    const s3Key = decodeURIComponent(result.rows[0].s3_key);
+
+    const signedUrl = await getSignedUrl(
+      s3Client,
+      new GetObjectCommand({ Bucket: process.env.S3_BUCKET_NAME, Key: s3Key }),
+      { expiresIn: 3600 } // 1 hour for public users
+    );
+
+    res.json({ signedUrl, doc_title: result.rows[0].doc_title });
+  } catch (err) {
+    console.error('Public preview endpoint error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================================
+// ERROR HANDLER
+// ============================================================
+app.use((error, req, res, next) => {
+  console.error('Unhandled error:', error);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+
 const PORT = process.env.PORT || 5000;
 
-// Test connections on startup and start server
 async function startServer() {
   try {
     const client = await pool.connect();
     const dbTest = await client.query('SELECT NOW()');
     client.release();
     console.log('✅ Database connected successfully at', dbTest.rows[0].now);
-    
+
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📋 Health check: http://localhost:${PORT}/api/health`);
       console.log(`📨 Webhook endpoint: http://localhost:${PORT}/api/webhook/submission`);
       console.log('📦 S3 Bucket:', process.env.S3_BUCKET_NAME || 'NOT CONFIGURED');
     });
-    
+
   } catch (error) {
     console.error('❌ Failed to start server:', error.message);
-    console.error('Check your .env file and database connection');
     process.exit(1);
   }
 }
