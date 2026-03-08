@@ -84,7 +84,8 @@ app.post('/api/webhook/submission', upload.single('document'), async (req, res) 
       source,
       original_abstract,
       final_abstract,
-      content_tags
+      content_tags,
+      additional_comments
     } = req.body;
 
     if (!your_name || !your_email || !doc_title) {
@@ -143,9 +144,10 @@ app.post('/api/webhook/submission', upload.single('document'), async (req, res) 
         original_abstract,
         final_abstract,
         content_tags,
+        additional_comments,
         visibility
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending')
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'pending')
       RETURNING id, created_at;
     `;
 
@@ -162,7 +164,8 @@ app.post('/api/webhook/submission', upload.single('document'), async (req, res) 
         s3Key,
         original_abstract,
         final_abstract,
-        parsedTags
+        parsedTags,
+        additional_comments
       ]);
 
       const submissionId = result.rows[0].id;

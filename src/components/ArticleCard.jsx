@@ -1,10 +1,28 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-export default function ArticleCard({ article, speakText }) {
+export default function ArticleCard({ article, speakText, forceOriginal = false }) {
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(false);
+
+  // Per-card toggle overrides global only if user has explicitly toggled this card
+  const [cardOverridden, setCardOverridden] = useState(false);
+
+  // reset card override when global toggle changes
+  useEffect(() => {
+    setCardOverridden(false);
+  }, [forceOriginal]);
+
+  const displayOriginal = cardOverridden ? showOriginal : forceOriginal;
+
+  const hasAIAbstract = !!article.final_abstract;
+  const hasOriginal = !!article.original_abstract;
+
+  const displayedAbstract = displayOriginal
+    ? article.original_abstract
+    : (article.final_abstract || article.original_abstract);
 
   const getSignedUrl = async () => {
     const res = await fetch(`${API}/api/articles/${article.id}/preview`);
@@ -51,29 +69,46 @@ export default function ArticleCard({ article, speakText }) {
       setSpeaking(false);
       return;
     }
-    const text = article.final_abstract || article.original_abstract || '';
+    const text = displayedAbstract || '';
     if (!text) return;
     if (speakText) {
       speakText(text);
       setSpeaking(true);
-      // Reset speaking state when done — estimate based on word count
       const wordCount = text.split(' ').length;
-      const estimatedMs = (wordCount / 0.8) * 1000; // ~0.8 words/sec at rate 0.8
+      const estimatedMs = (wordCount / 0.8) * 1000;
       setTimeout(() => setSpeaking(false), estimatedMs);
     }
   };
 
-  const hasFile = !!article.s3_key || true; // assume file exists; 404 handled gracefully
+  const handleCardToggle = () => {
+    setShowOriginal(!displayOriginal);
+    setCardOverridden(true);
+  };
 
   return (
     <div className="bg-white p-5 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
       <h2 className="text-xl font-bold text-gray-900 leading-snug">{article.doc_title}</h2>
 
       {/* Abstract */}
-      {(article.final_abstract || article.original_abstract) && (
-        <p className="text-gray-600 mt-2 text-sm leading-relaxed line-clamp-3">
-          {article.final_abstract || article.original_abstract}
-        </p>
+      {displayedAbstract && (
+        <div className="mt-2">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+              {displayOriginal ? '✏️ Original abstract' : '🤖 AI-edited abstract'}
+            </span>
+            {hasAIAbstract && hasOriginal && (
+              <button
+                onClick={handleCardToggle}
+                className="text-xs text-purple-600 hover:text-purple-800 underline"
+              >
+                {displayOriginal ? 'Show AI version' : 'Show original'}
+              </button>
+            )}
+          </div>
+          <p className="text-gray-600 text-sm leading-relaxed">
+            {displayedAbstract}
+          </p>
+        </div>
       )}
 
       {/* Tags */}
