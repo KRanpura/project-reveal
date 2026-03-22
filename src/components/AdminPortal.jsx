@@ -707,7 +707,20 @@ const AdminPortal = () => {
         <DocDrawer
           doc={activeDoc}
           onClose={() => setActiveDoc(null)}
-          onUpdate={(id, vis) => { handleVisUpdate(id, vis); setActiveDoc(prev => ({ ...prev, visibility: vis })); }}
+          onUpdate={async (id, vis) => {
+            const res = await fetch(`${API}/api/admin/documents/${id}/visibility`, {
+              method: 'PATCH',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ visibility: vis }),
+            });
+            if (res.ok) {
+              handleVisUpdate(id, vis);
+              setActiveDoc(prev => ({ ...prev, visibility: vis }));
+            } else {
+              alert('Failed to update visibility');
+            }
+          }}
           onDelete={handleDelete}
         />
       )}
