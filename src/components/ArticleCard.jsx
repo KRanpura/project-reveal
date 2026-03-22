@@ -136,15 +136,7 @@ export default function ArticleCard({ article, speakText, forceOriginal = false 
           disabled={loading}
           className="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
         >
-          {loading ? 'Loading…' : '👁 Preview'}
-        </button>
-
-        <button
-          onClick={handleDownload}
-          disabled={loading}
-          className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          {loading ? 'Loading…' : '⬇ Download'}
+          {loading ? 'Loading…' : '👁 View'}
         </button>
 
         <button
