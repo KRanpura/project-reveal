@@ -34,34 +34,19 @@ export default function ArticleCard({ article, speakText, forceOriginal = false 
 
   const handlePreview = async () => {
     setLoading(true);
+    const newTab = window.open('', '_blank'); // open immediately, before await
     try {
       const url = await getSignedUrl();
-      window.open(url, '_blank');
+      newTab.location.href = url;
     } catch (err) {
       console.error('Preview failed:', err);
+      newTab.close();
       alert('Could not load preview. The file may not be available.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDownload = async () => {
-    setLoading(true);
-    try {
-      const url = await getSignedUrl();
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${article.doc_title || 'document'}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (err) {
-      console.error('Download failed:', err);
-      alert('Could not download file. The file may not be available.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleReadAloud = () => {
     if (speaking) {
