@@ -181,7 +181,7 @@ function App() {
 
       {/* MAIN CONTENT */}
       <main className="max-w-7xl mx-auto p-4 md:p-8">
-        <div className="bg-purple-50 rounded-xl shadow-2xl p-6">
+        <div className="bg-purple-50 rounded-xl shadow-2xl p-6 ring-4 ring-purple-200">
           <Routes>
             <Route path="/" element={<Home logo={logo} />} />
             <Route
