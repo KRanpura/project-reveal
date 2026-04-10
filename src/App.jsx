@@ -1,20 +1,101 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
-import { Home as HomeIcon, Search } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Routes, Route, NavLink, Navigate, useNavigate } from 'react-router-dom';
+import { Home as HomeIcon, Search, Info, ChevronDown } from 'lucide-react';
 
 import Home from './components/Home';
 import BrowseArticles from './components/BrowseArticles';
 import AdminPortal from './components/AdminPortal';
+import About from './components/About';
 
 import logo from './assets/logo.png';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+const ABOUT_SECTIONS = [
+  { label: 'Mission',          anchor: 'mission' },
+  { label: 'REVEAL Manifesto', anchor: 'reveal-manifesto' },
+  { label: 'Design Decisions', anchor: 'design-decisions' },
+  { label: 'Contributor Bios', anchor: 'contributor-bios' },
+];
+
+function AboutDropdown() {
+  const [open, setOpen] = useState(false);
+  const closeTimer = useRef(null);
+  const navigate = useNavigate();
+
+  const handleMouseEnter = () => {
+    clearTimeout(closeTimer.current);
+    setOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    closeTimer.current = setTimeout(() => setOpen(false), 150);
+  };
+
+  const handleSectionClick = (anchor) => {
+    setOpen(false);
+    navigate('/about');
+    setTimeout(() => {
+      const el = document.getElementById(anchor);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <NavLink
+        to="/about"
+        className={({ isActive }) =>
+          `flex items-center space-x-2 px-3 py-2 rounded-full transition-all text-lg font-medium ${
+            isActive
+              ? 'bg-fuchsia-100 text-fuchsia-700'
+              : 'text-gray-600 hover:text-fuchsia-700 hover:bg-fuchsia-50'
+          }`
+        }
+      >
+        <Info className="h-5 w-5" />
+        <span>About REVEAL</span>
+        <ChevronDown
+          className="h-4 w-4 transition-transform duration-200"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+        />
+      </NavLink>
+
+      {open && (
+        <div
+          className="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-purple-100 py-1 z-50"
+          style={{ animation: 'fadeSlideDown 0.15s ease-out' }}
+        >
+          {ABOUT_SECTIONS.map((section) => (
+            <button
+              key={section.anchor}
+              onClick={() => handleSectionClick(section.anchor)}
+              className="w-full text-left px-4 py-2 text-sm font-medium text-gray-600 hover:bg-fuchsia-50 hover:text-fuchsia-700 transition-colors"
+            >
+              {section.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <style>{`
+        @keyframes fadeSlideDown {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 function App() {
   const [articles, setArticles] = useState([]);
   const [articlesLoading, setArticlesLoading] = useState(true);
 
-  // Fetch real public articles from backend
   useEffect(() => {
     fetch(`${API}/api/articles/public`)
       .then(r => r.json())
@@ -61,9 +142,8 @@ function App() {
               <span className="text-3xl font-extrabold" style={{ color: ACCENT_COLOR }}>REVEAL</span>
             </div>
 
-            {/* PUBLIC NAV — Admin link intentionally removed */}
-            {/* Admin is accessed via /admin directly, not linked publicly */}
-            <nav className="flex space-x-4">
+            {/* NAV */}
+            <nav className="flex items-center space-x-4">
               <NavLink
                 to="/"
                 end
@@ -93,14 +173,7 @@ function App() {
                 <span>Browse Articles</span>
               </NavLink>
 
-              {/* Admin portal: accessible at /admin but NOT linked here.
-                  If you ever want a subtle link back, uncomment: */}
-              {/*
-              <NavLink to="/admin" className="...">
-                <User className="h-5 w-5" />
-                <span>Admin</span>
-              </NavLink>
-              */}
+              <AboutDropdown />
             </nav>
           </div>
         </div>
@@ -111,7 +184,6 @@ function App() {
         <div className="bg-purple-50 rounded-xl shadow-2xl p-6">
           <Routes>
             <Route path="/" element={<Home logo={logo} />} />
-
             <Route
               path="/browse"
               element={
@@ -123,10 +195,8 @@ function App() {
                 />
               }
             />
-
-            {/* Admin portal — no auth redirect needed here, AdminPortal handles it internally */}
+            <Route path="/about" element={<About logo={logo} />} />
             <Route path="/admin" element={<AdminPortal />} />
-
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
