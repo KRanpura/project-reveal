@@ -95,6 +95,7 @@ function AboutDropdown() {
 function App() {
   const [articles, setArticles] = useState([]);
   const [articlesLoading, setArticlesLoading] = useState(true);
+  const [globalSearch, setGlobalSearch] = useState('');
 
   useEffect(() => {
     fetch(`${API}/api/articles/public`)
@@ -135,7 +136,7 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
 
-            {/* Branding (NOW CLICKABLE) */}
+            {/* Branding */}
             <Link to="/" className="flex items-center space-x-2">
               <img src={logo} alt="Project REVEAL Logo" className="h-12 w-12 object-contain" />
               <span className="text-3xl font-extrabold" style={{ color: PRIMARY_COLOR }}>PROJECT</span>
@@ -168,7 +169,10 @@ function App() {
       <main className="max-w-7xl mx-auto p-4 md:p-8">
         <div className="bg-purple-50 rounded-xl shadow-2xl p-6 ring-4 ring-purple-200">
           <Routes>
-            <Route path="/" element={<Home logo={logo} />} />
+            <Route
+              path="/"
+              element={<Home logo={logo} onSearch={(q) => { setGlobalSearch(q); }} />}
+            />
             <Route
               path="/browse"
               element={
@@ -177,6 +181,8 @@ function App() {
                   allTags={allTags}
                   speakText={speakText}
                   loading={articlesLoading}
+                  searchQuery={globalSearch}
+                  onSearchChange={setGlobalSearch}
                 />
               }
             />

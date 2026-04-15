@@ -1,11 +1,21 @@
 import React, { useState } from 'react';
 import ArticleCard from './ArticleCard';
 
-export default function BrowseArticles({ articles, allTags, speakText }) {
+export default function BrowseArticles({ articles, allTags, speakText, loading, searchQuery: externalQuery, onSearchChange }) {
   const [selectedTag, setSelectedTag] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [internalQuery, setInternalQuery] = useState('');
   const [showOriginalAll, setShowOriginalAll] = useState(false);
   const [showAllTags, setShowAllTags] = useState(false);
+
+  const searchQuery = externalQuery !== undefined ? externalQuery : internalQuery;
+  const setSearchQuery = (val) => {
+    if (onSearchChange) onSearchChange(val);
+    else setInternalQuery(val);
+  };
+
+  if (loading) {
+    return <p className="text-gray-700">Loading articles...</p>;
+  }
 
   if (!articles || articles.length === 0) {
     return <p className="text-gray-700">No public articles available.</p>;
@@ -30,7 +40,6 @@ export default function BrowseArticles({ articles, allTags, speakText }) {
     return matchesTag && matchesSearch;
   });
 
-  // helper: format tag nicely
   const formatTag = (tag) =>
     tag
       .split(' ')
@@ -100,9 +109,7 @@ export default function BrowseArticles({ articles, allTags, speakText }) {
           }`}
         >
           <span>{showOriginalAll ? '✏️' : '🤖'}</span>
-          {showOriginalAll
-            ? 'Showing original abstracts'
-            : 'Show original abstracts'}
+          {showOriginalAll ? 'Showing original abstracts' : 'Show original abstracts'}
         </button>
       </div>
 
@@ -125,9 +132,7 @@ export default function BrowseArticles({ articles, allTags, speakText }) {
           ))}
         </div>
       ) : (
-        <p className="text-gray-500 text-sm">
-          No articles match your search.
-        </p>
+        <p className="text-gray-500 text-sm">No articles match your search.</p>
       )}
     </div>
   );
