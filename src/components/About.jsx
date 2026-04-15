@@ -174,7 +174,14 @@ const About = ({ logo }) => {
             Data curation, accessible features, technical decisions
           </p>
           <p className="text-gray-500 text-sm leading-relaxed">
-            Design Rationale
+            	The team at Project Reveal values privacy, which is why the site has been built on the principle of a privacy-preserving architecture: visitors to the site can view and download documents without making an account, and we do not store any kind of metrics on viewership. As AI becomes an increasingly widespread tool, we seek to be transparent about our use of AI to edit human-created abstracts. At its core, Project Reveal is a human-led, human-supporting initiative. 
+          </p>
+          <p className="text-gray-500 text-sm leading-relaxed">
+We value presenting both scholarly and general information in a way that can be easily 
+digested and understood by all viewers regardless of education and literary level, which is why care has been taken to provide abstracts at both adult and sixth-grade reading level, as well as a read aloud button. 
+          </p>
+          <p className="text-gray-500 text-sm leading-relaxed">
+	Above all, we honor our commitment to preserving critical health information that is considered controversial and is therefore at risk of deletion; users can browse our archive through keyword-based search, or view tags that group articles based on race, gender, sexuality, age group, pregnancy experience, and more. 
           </p>
         </div>
       </section>

@@ -50,17 +50,17 @@ function AboutDropdown() {
       <NavLink
         to="/about"
         className={({ isActive }) =>
-          `flex items-center space-x-2 px-3 py-2 rounded-full transition-all text-lg font-medium ${
+          `flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-all text-sm sm:text-lg font-medium ${
             isActive
               ? 'bg-fuchsia-100 text-fuchsia-700'
               : 'text-gray-600 hover:text-fuchsia-700 hover:bg-fuchsia-50'
           }`
         }
       >
-        <Info className="h-5 w-5" />
+        <Info className="h-4 w-4 sm:h-5 sm:w-5" />
         <span>About REVEAL</span>
         <ChevronDown
-          className="h-4 w-4 transition-transform duration-200"
+          className="h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-200"
           style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
         />
       </NavLink>
@@ -134,30 +134,30 @@ function App() {
       {/* HEADER */}
       <header className="bg-white shadow-lg border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-auto py-3 gap-2 flex-wrap">
 
             {/* Branding */}
             <Link to="/" className="flex items-center space-x-2">
-              <img src={logo} alt="Project REVEAL Logo" className="h-12 w-12 object-contain" />
-              <span className="text-3xl font-extrabold" style={{ color: PRIMARY_COLOR }}>PROJECT</span>
-              <span className="text-3xl font-extrabold" style={{ color: ACCENT_COLOR }}>REVEAL</span>
+              <img src={logo} alt="Project REVEAL Logo" className="h-8 w-8 sm:h-12 sm:w-12 object-contain" />
+              <span className="text-xl sm:text-3xl font-extrabold" style={{ color: PRIMARY_COLOR }}>PROJECT</span>
+              <span className="text-xl sm:text-3xl font-extrabold" style={{ color: ACCENT_COLOR }}>REVEAL</span>
             </Link>
 
             {/* NAV */}
-            <nav className="flex items-center space-x-4">
+            <nav className="flex items-center gap-1 sm:gap-4">
               <AboutDropdown />
 
               <NavLink
                 to="/browse"
                 className={({ isActive }) =>
-                  `flex items-center space-x-2 px-3 py-2 rounded-full transition-all text-lg font-medium ${
+                  `flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-all text-sm sm:text-lg font-medium ${
                     isActive
                       ? 'bg-fuchsia-100 text-fuchsia-700'
                       : 'text-gray-600 hover:text-fuchsia-700 hover:bg-fuchsia-50'
                   }`
                 }
               >
-                <Search className="h-5 w-5" />
+                <Search className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span>Browse Articles</span>
               </NavLink>
             </nav>
