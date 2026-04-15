@@ -6,43 +6,43 @@ const ACCENT_ORANGE = '#fb923c';
 const teamMembers = [
   {
     id: 1,
-    name: 'E.W',
+    name: 'Ellen W.',
     role: 'B.S.W., Minor: WGSS',
     bio: 'I am someone who believes that access to knowledge, to care, and to each other can shift what is possible. Grounded in both Social Work and WGSS, my work is shaped by a feminist ethic that resists extraction and leans toward reciprocity and accountability. I am learning to sit with complexity and to build toward a world that is more honest and kinder to move through.',
     headshot: null,
   },
   {
     id: 2,
-    name: 'K.R.',
-    role: 'CS and English alum',
+    name: 'Khushi R.',
+    role: 'B.S. in Computer Science and English',
     bio: 'I believe that access to information, particularly that which pertains to reproductive justice, sexual health, and family planning, is central to uplifting women, and with them, their families and communities.',
     headshot: null,
   },
   {
     id: 3,
-    name: 'S.S.',
+    name: 'Skye S.',
     role: 'B.S.PH., Minor: BA',
     bio: 'I am someone who believes that expanding access to knowledge can shift what becomes possible for communities, and I return to the idea that public health is strongest when it is people‑centered. My work is grounded in health policy, and I hope to make possible a world where people feel informed and supported as they navigate the health systems that shape their lives.',
     headshot: null,
   },
   {
     id: 4,
-    name: 'A.R',
-    role: 'Political Science, Minor: PPE (Philosophy, Politics, and Economics)',
+    name: 'Ashley R.',
+    role: 'B.A. in Political Science, Minor: PPE (Philosophy, Politics, and Economics)',
     bio: 'I am someone who is driven by growth, curiosity, and the desire to create something meaningful. My work is grounded in determination, resilience, and a commitment to improving both myself and the communities around me. I am learning to trust my path, embrace uncertainty, and move forward with confidence. What I hope to make possible is a future where I can create impact, open doors for others, and build something that lasts.',
     headshot: null,
   },
   {
     id: 5,
-    name: 'B.D.P.',
-    role: 'B.S. Public Health, Minor: Biology',
+    name: 'Burne D.P.',
+    role: 'B.S. in Public Health, Minor: Biology',
     bio: "I am someone who believes that access to healthcare and information shouldn't be controlled, especially when it comes to women's bodies and choices. I return to the idea that preserving data and lived experiences is a way to push back against systems trying to erase them. My work is grounded in public health and shaped by my goal to advocate for women, especially in reproductive health. I am learning to challenge these barriers while finding ways to combine medicine and advocacy in a real, impactful way. What I hope to make possible is a future where women are actually heard, supported, and able to make their own decisions about their health.",
     headshot: null,
   },
   {
     id: 6,
-    name: 'X.I.',
-    role: 'CS and Bio',
+    name: 'Xiying I.',
+    role: 'B.S. in Computer Science and Biology',
     bio: 'I am someone who believes in the freedom to knowledge and personal autonomy. As a woman in STEM, my work is uplifted by fellow peers and mentors who strive to provide a safe environment for all women. I hope to influence society towards not only equality, but also equity.',
     headshot: null,
   },
@@ -61,89 +61,43 @@ const PlaceholderAvatar = ({ name }) => {
 };
 
 const MemberCard = ({ member }) => {
-  const [flipped, setFlipped] = useState(false);
-
   return (
     <div
-      className="relative cursor-pointer"
-      style={{ perspective: '1000px' }}
-      onClick={() => setFlipped((f) => !f)}
-      onKeyDown={(e) => e.key === 'Enter' && setFlipped((f) => !f)}
-      tabIndex={0}
-      role="button"
-      aria-label={`View bio for ${member.name}`}
+      className="bg-purple-100 rounded-xl shadow-lg border border-purple-200 flex flex-col items-center p-6 h-full"
     >
-      {/*
-        Invisible spacer — sits in normal flow to give the container
-        its height. Mirrors the back-face content (which is the taller side).
-      */}
-      <div className="invisible pointer-events-none select-none" aria-hidden="true">
-        <div className="bg-purple-100 rounded-xl p-6 flex flex-col items-center">
-          {/* avatar placeholder */}
-          <div className="mb-5 rounded-full" style={{ width: 120, height: 120, flexShrink: 0 }} />
-          <div className="text-xl font-bold mb-1">{member.name}</div>
-          <div className="text-xs mb-4 uppercase tracking-wider">{member.role}</div>
-          <p className="text-sm leading-relaxed text-center">{member.bio}</p>
-          <span className="text-xs mt-3">Click to flip back</span>
-        </div>
-      </div>
-
-      {/* Flip container — absolutely fills the spacer's height */}
+      {/* Avatar */}
       <div
-        className="absolute inset-0"
-        style={{
-          transformStyle: 'preserve-3d',
-          transition: 'transform 0.55s cubic-bezier(0.4, 0, 0.2, 1)',
-          transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-        }}
+        className="mb-5 rounded-full overflow-hidden border-4 border-purple-300 shadow-md"
+        style={{ width: 120, height: 120, flexShrink: 0 }}
       >
-        {/* FRONT */}
-        <div
-          className="absolute inset-0 bg-purple-100 rounded-xl shadow-lg border border-purple-200 flex flex-col items-center justify-center p-6"
-          style={{ backfaceVisibility: 'hidden' }}
-        >
-          <div
-            className="mb-5 rounded-full overflow-hidden border-4 border-purple-300 shadow-md"
-            style={{ width: 120, height: 120, flexShrink: 0 }}
-          >
-            {member.headshot
-              ? <img src={member.headshot} alt={member.name} className="w-full h-full object-cover" />
-              : <PlaceholderAvatar name={member.name} />}
-          </div>
-          <h3 className="text-xl font-bold text-center mb-1" style={{ color: PRIMARY_PURPLE }}>{member.name}</h3>
-          <p className="text-sm font-medium text-purple-500 text-center mb-4">{member.role}</p>
-          <span className="text-xs text-gray-400 mt-auto flex items-center gap-1">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74" />
-              <path d="M21 3v9h-9" />
-              <path d="M21 12A9 9 0 0 0 12 3a9.75 9.75 0 0 0-6.74 2.74" />
-            </svg>
-            Click to read bio
-          </span>
-        </div>
-
-        {/* BACK */}
-        <div
-          className="absolute inset-0 rounded-xl shadow-lg border border-purple-300 flex flex-col items-center justify-center p-6"
-          style={{
-            backfaceVisibility: 'hidden',
-            transform: 'rotateY(180deg)',
-            background: `linear-gradient(135deg, #ede9fe 0%, #f5f3ff 100%)`,
-          }}
-        >
-          <h3 className="text-lg font-bold text-center mb-1" style={{ color: PRIMARY_PURPLE }}>{member.name}</h3>
-          <p className="text-xs font-semibold text-purple-400 text-center mb-3 uppercase tracking-wider">{member.role}</p>
-          <p className="text-gray-600 text-sm leading-relaxed text-center">{member.bio}</p>
-          <span className="text-xs text-gray-400 mt-3 flex items-center gap-1 flex-shrink-0">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74" />
-              <path d="M21 3v9h-9" />
-              <path d="M21 12A9 9 0 0 0 12 3a9.75 9.75 0 0 0-6.74 2.74" />
-            </svg>
-            Click to flip back
-          </span>
-        </div>
+        {member.headshot ? (
+          <img
+            src={member.headshot}
+            alt={member.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <PlaceholderAvatar name={member.name} />
+        )}
       </div>
+
+      {/* Name */}
+      <h3
+        className="text-xl font-bold text-center mb-1"
+        style={{ color: PRIMARY_PURPLE }}
+      >
+        {member.name}
+      </h3>
+
+      {/* Role */}
+      <p className="text-sm font-medium text-purple-500 text-center mb-4">
+        {member.role}
+      </p>
+
+      {/* Bio (always visible now) */}
+      <p className="text-sm leading-relaxed text-center text-gray-600">
+        {member.bio}
+      </p>
     </div>
   );
 };
@@ -189,11 +143,25 @@ const About = ({ logo }) => {
             REVEAL Manifesto
           </h2>
           <p className="text-gray-600 leading-relaxed text-base mb-4">
-            We believe that information is power — and that the erasure of reproductive health
-            data is an act of political violence. Project REVEAL exists to resist that erasure.
+            Project REVEAL starts from the understanding that erasure is never accidental. When reproductive and public health information disappears from public view, that disappearance is political as it greatly influences how people understand their bodies, their options, their rights, and their futures.
           </p>
-          <p className="text-gray-500 text-sm leading-relaxed">
-            Manifesto placeholder
+          <p className="text-gray-600 leading-relaxed text-base mb-4">
+            We built Project REVEAL to respond to that reality. Born from the urgency of federal and state attacks on reproductive rights and the removal of public health data from government websites, Project REVEAL is a feminist archive committed to preserving vulnerable knowledge and making it meaningfully accessible to the public. Information produced for the public should remain available to the public, and that access to accurate, legible health information is part of what makes autonomy possible. Our work is grounded in Reproductive Justice, rooted in Black feminist activism: the right to have children, not have children, and to parent children in safe and healthy environments, alongside sexual autonomy and gender freedom. This framework shapes not only what we preserve, but how we preserve it. We seek documents that reflect the layered realities of race, gender, sexuality, class, disability, and geography, because access to care and access to information are never evenly distributed.
+          </p>
+          <p className="text-gray-600 leading-relaxed text-base mb-4">
+            Project REVEAL is committed to public scholarship. We did not want to build a resource that only serves people with institutional access, technical fluency, or specialized training. We wanted to create a public database that helps people orient themselves in the present. And it is because of that commitment that we write abstracts for every document, work to create more accessible versions, and design the site so that users can browse by keyword and tags that reflect the multiplicity of identity, lived conditions, and community.
+          </p>
+          <p className="text-gray-600 leading-relaxed text-base mb-4">
+            Our methodology is feminist as it rejects the idea that preservation should look anything like extraction and control with the guise of neutrality. We do not believe in a data dump without context. We believe in care, interpretation, and legibility. We believe knowledge should be held collectively, made usable, and shared in ways that honor the people who need it most. We are committed to co-creation rather than building for or building from above. Project REVEAL is a living, collaborative practice shaped by interdisciplinary labor, public responsibility, and the conviction that another way of building knowledge infrastructure is possible.
+          </p>
+          <p className="text-gray-600 leading-relaxed text-base mb-4">
+            Our stance on AI is clear: AI is a support tool, not a substitute for human thought, judgment, or labor. We use it in limited ways to increase accessibility, such as helping translate complex health information into a sixth-grade reading level. But AI does not decide what matters, does not replace critical thinking, and does not override human review. The project remains human-led at every stage. We believe technology should support liberation and access, not convenience at the expense of rigor or accountability! 
+          </p>
+          <p className="text-gray-600 leading-relaxed text-base mb-4">
+            We are equally committed to privacy. Given the stakes of the information we preserve, we view privacy as an ethical responsibility, not a bonus feature. Visitors can use the site without creating an account, and we intentionally limit the amount of information we collect and retain. We do not treat users as data points, and we reject architectures that make vulnerable people more vulnerable.
+          </p>
+          <p className="text-gray-600 leading-relaxed text-base mb-4">
+            Project REVEAL is more than an archive. It is a refusal of disappearance. A feminist infrastructure for public knowledge. A collective effort to preserve what is at risk, make it usable, and protect the people who come looking for it.
           </p>
         </div>
       </section>

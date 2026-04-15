@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Routes, Route, NavLink, Navigate, useNavigate } from 'react-router-dom';
-import { Home as HomeIcon, Search, Info, ChevronDown } from 'lucide-react';
+import { Routes, Route, NavLink, Navigate, useNavigate, Link } from 'react-router-dom';
+import { Search, Info, ChevronDown } from 'lucide-react';
 
 import Home from './components/Home';
 import BrowseArticles from './components/BrowseArticles';
@@ -135,29 +135,16 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
 
-            {/* Branding */}
-            <div className="flex items-center space-x-2">
+            {/* Branding (NOW CLICKABLE) */}
+            <Link to="/" className="flex items-center space-x-2">
               <img src={logo} alt="Project REVEAL Logo" className="h-12 w-12 object-contain" />
               <span className="text-3xl font-extrabold" style={{ color: PRIMARY_COLOR }}>PROJECT</span>
               <span className="text-3xl font-extrabold" style={{ color: ACCENT_COLOR }}>REVEAL</span>
-            </div>
+            </Link>
 
             {/* NAV */}
             <nav className="flex items-center space-x-4">
-              <NavLink
-                to="/"
-                end
-                className={({ isActive }) =>
-                  `flex items-center space-x-2 px-3 py-2 rounded-full transition-all text-lg font-medium ${
-                    isActive
-                      ? 'bg-fuchsia-100 text-fuchsia-700'
-                      : 'text-gray-600 hover:text-fuchsia-700 hover:bg-fuchsia-50'
-                  }`
-                }
-              >
-                <HomeIcon className="h-5 w-5" />
-                <span>Home</span>
-              </NavLink>
+              <AboutDropdown />
 
               <NavLink
                 to="/browse"
@@ -172,8 +159,6 @@ function App() {
                 <Search className="h-5 w-5" />
                 <span>Browse Articles</span>
               </NavLink>
-
-              <AboutDropdown />
             </nav>
           </div>
         </div>
