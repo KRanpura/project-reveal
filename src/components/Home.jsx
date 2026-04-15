@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Archive, Heart, Zap, Search } from 'lucide-react';
+import { Archive, Zap, Search } from 'lucide-react';
 
 const PRIMARY_PURPLE = '#7e22ce';
 
@@ -35,7 +35,7 @@ const Home = ({ logo, onSearch }) => {
       </div>
 
       {/* Search Bar */}
-      <form onSubmit={handleSearch} className="flex items-center gap-3 max-w-2xl mx-auto mb-12">
+      <form onSubmit={handleSearch} className="flex items-center gap-3 max-w-2xl mx-auto mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-purple-400 pointer-events-none" />
           <input
@@ -57,8 +57,14 @@ const Home = ({ logo, onSearch }) => {
         </button>
       </form>
 
-      {/* Content Grid */}
-      <div className="grid md:grid-cols-3 gap-8">
+      {/* Mission blurb under search */}
+      <p className="text-center max-w-2xl mx-auto mb-12 text-base text-gray-600">
+        <span className="font-bold text-purple-700">Our mission is </span>
+        to collect, protect, and provide open access to reproductive health data (abortion, gestational health, mortality). We prioritize the well-being of all people, especially queer, trans, and nonbinary communities.
+      </p>
+
+      {/* Content Grid — 2 cards, centered */}
+      <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
         <div className="bg-purple-100 p-6 rounded-xl shadow-lg border border-purple-200">
           <h2 className="text-2xl font-bold text-purple-700 mb-4 flex items-center">
             <Zap className="h-6 w-6 mr-3 text-purple-500" />
@@ -69,19 +75,6 @@ const Home = ({ logo, onSearch }) => {
           </p>
           <p className="text-sm text-gray-500 mt-2">
             We act to preserve materials related to gender, diversity, and reproductive health that are being lost, while utilizing AI to promote accessibility of information by translating complex article abstracts into readable summaries.
-          </p>
-        </div>
-
-        <div className="bg-purple-100 p-6 rounded-xl shadow-lg border border-purple-200">
-          <h2 className="text-2xl font-bold text-purple-700 mb-4 flex items-center">
-            <Heart className="h-6 w-6 mr-3 text-purple-500" />
-            Our Mission
-          </h2>
-          <p className="text-gray-700 leading-relaxed mb-4">
-            To collect, protect, and provide open access to reproductive health data (abortion, gestational health, mortality).
-          </p>
-          <p className="text-sm text-gray-500">
-            We prioritize the well-being of all people, especially queer, trans, and nonbinary communities.
           </p>
         </div>
 
