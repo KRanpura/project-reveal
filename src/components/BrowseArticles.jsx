@@ -5,6 +5,7 @@ export default function BrowseArticles({ articles, allTags, speakText }) {
   const [selectedTag, setSelectedTag] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showOriginalAll, setShowOriginalAll] = useState(false);
+  const [showAllTags, setShowAllTags] = useState(false);
 
   if (!articles || articles.length === 0) {
     return <p className="text-gray-700">No public articles available.</p>;
@@ -13,17 +14,30 @@ export default function BrowseArticles({ articles, allTags, speakText }) {
   const filteredArticles = articles.filter(article => {
     const matchesTag = selectedTag ? article.tags?.includes(selectedTag) : true;
     const query = searchQuery.toLowerCase().trim();
-    const matchesSearch = query === '' || [
-      article.doc_title,
-      article.final_abstract,
-      article.original_abstract,
-      article.source,
-      ...(article.tags || []),
-    ]
-      .filter(Boolean)
-      .some(field => field.toLowerCase().includes(query));
+
+    const matchesSearch =
+      query === '' ||
+      [
+        article.doc_title,
+        article.final_abstract,
+        article.original_abstract,
+        article.source,
+        ...(article.tags || []),
+      ]
+        .filter(Boolean)
+        .some(field => field.toLowerCase().includes(query));
+
     return matchesTag && matchesSearch;
   });
+
+  // helper: format tag nicely
+  const formatTag = (tag) =>
+    tag
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+
+  const visibleTags = showAllTags ? allTags : allTags.slice(0, 10);
 
   return (
     <div>
@@ -40,26 +54,40 @@ export default function BrowseArticles({ articles, allTags, speakText }) {
 
       {/* TAG FILTERS + GLOBAL ABSTRACT TOGGLE */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           <button
             className={`px-3 py-1 rounded-md ${
-              selectedTag === null ? 'bg-purple-600 text-white' : 'bg-purple-200 text-purple-800'
+              selectedTag === null
+                ? 'bg-purple-600 text-white'
+                : 'bg-purple-200 text-purple-800'
             }`}
             onClick={() => setSelectedTag(null)}
           >
             All
           </button>
-          {allTags.map(tag => (
+
+          {visibleTags.map(tag => (
             <button
               key={tag}
               className={`px-3 py-1 rounded-md ${
-                selectedTag === tag ? 'bg-purple-600 text-white' : 'bg-purple-200 text-purple-800'
+                selectedTag === tag
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-purple-200 text-purple-800'
               }`}
               onClick={() => setSelectedTag(tag)}
             >
-              {tag}
+              {formatTag(tag)}
             </button>
           ))}
+
+          {allTags.length > 10 && (
+            <button
+              onClick={() => setShowAllTags(prev => !prev)}
+              className="text-sm text-purple-600 hover:text-purple-800 ml-2"
+            >
+              {showAllTags ? 'See Less' : 'See More'}
+            </button>
+          )}
         </div>
 
         {/* GLOBAL TOGGLE */}
@@ -72,13 +100,16 @@ export default function BrowseArticles({ articles, allTags, speakText }) {
           }`}
         >
           <span>{showOriginalAll ? '✏️' : '🤖'}</span>
-          {showOriginalAll ? 'Showing original abstracts' : 'Show original abstracts'}
+          {showOriginalAll
+            ? 'Showing original abstracts'
+            : 'Show original abstracts'}
         </button>
       </div>
 
       {/* RESULTS COUNT */}
       <p className="text-sm text-gray-400 mb-3">
-        {filteredArticles.length} {filteredArticles.length === 1 ? 'article' : 'articles'} found
+        {filteredArticles.length}{' '}
+        {filteredArticles.length === 1 ? 'article' : 'articles'} found
       </p>
 
       {/* ARTICLES GRID */}
@@ -94,7 +125,9 @@ export default function BrowseArticles({ articles, allTags, speakText }) {
           ))}
         </div>
       ) : (
-        <p className="text-gray-500 text-sm">No articles match your search.</p>
+        <p className="text-gray-500 text-sm">
+          No articles match your search.
+        </p>
       )}
     </div>
   );
