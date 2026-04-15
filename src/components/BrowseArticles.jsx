@@ -37,7 +37,7 @@ export default function BrowseArticles({ articles, allTags, speakText }) {
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
 
-  const visibleTags = showAllTags ? allTags : allTags.slice(0, 10);
+  const visibleTags = showAllTags ? allTags : allTags.slice(0, 9);
 
   return (
     <div>
